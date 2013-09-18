@@ -162,33 +162,30 @@ checkEquiv =
 cnf:: Form -> Form 
 cnf (Prop x) = Prop x
 cnf (Cnj fs) = Cnj (map cnf fs)
--- VVZ: treating of disjunction is incorrect: the Haskell implementation allows for three and more elements in a clause
--- GROUP: Fixed
 cnf (Dsj [f1,f2]) = dist f1 f2
-cnf (Dsj (f:fs)) = dist f (cnf (Dsj fs))
-cnf f	     = f
+
+-- VVZ: treating of disjunction is incorrect: the Haskell implementation allows for three and more elements in a clause
+-- GROUP: Fixed this by adding the following line:
+cnf (Dsj (f:fs))  = dist f (cnf (Dsj fs))
+cnf f	          = f
 
 -- precondition: input is in cnf
 -- VVZ: incorrect, works correctly only on two-element lists, which is not reflected by the type (hence, the spec and the program don't agree)
 -- VVZ: also, a binary version could have been simplified (you don't need to use map if you know there are only two elements)
--- GROUP : Fixed
+-- GROUP : Fixed by making dist function accept two Form parameters
 
 dist:: Form -> Form -> Form
 dist (Cnj [f1,f2]) f3 = Cnj [dist f1 f3, dist f2 f3]
 dist f1 (Cnj [f2,f3]) = Cnj [dist f1 f2, dist f1 f3]
-dist f1 f2 	       = Dsj [f1,f2]
+dist f1 f2 	      = Dsj [f1,f2]
 
 -- function to convert any form to cnf
 -- VVZ: incorrect, counterexample: cnf (Cnj [Cnj [p,q], q])
 
--- GROUP: Does this mean that the nested conjunctions need to be flattened out? So the cnf results in Cnj [p,q,q] or Cnj [p,q]?? 
--- Because the grammar of CNF does not - according to us - indicate this. Is it not correct that the result is the same as the form?
-
---  Cnj [Cnj [p,q], q] ==> Cnj [p, q, q]
--- (p /\ q) /\ q ==> p /\ q /\ q
--- Cnj [Cnj [p,q], r] ==> Cnj [p, q, r]
--- (p /\ q) /\ r ==> p /\ q /\ r
-
+-- GROUP: 
+-- Is it not correct that the result is the same as the form for the counterexample you give here? This example form is already in CNF, isn't it?
+-- Or do you mean that the nested conjunctions need to be flattened out? So the cnf results in Cnj [p,q,q] or Cnj [p,q]?? 
+-- Because the grammar of CNF does not - according to us - indicate this. 
 
 fromAnyFormToCnf:: Form -> Form
 fromAnyFormToCnf f = cnf (nnf (arrowfree f))
@@ -200,9 +197,7 @@ fromAnyFormToCnf f = cnf (nnf (arrowfree f))
 -- VVZ: only tests if the transformation to CNF preserves the equivalence
 -- VVZ: never tests if the result actually conforms to the definition of CNF
 -- VVZ: (and it does not for many, try to run "cnf form1_Equivalence")
--- checkCnf2 :: Form -> Form
--- checkCnf2 (Neg (Prop x)) = True
--- checkCnf2 (Dsj fs) = -- has
+-- GROUP: Almost fixed.. functionsBoundWithCnj function needs to be still implemented to make the check complete.
 
 checkCnfConvertionSampleForms = map checkCnf [form_Tautology, form1_Implication, form1_Equivalence, form_Contradiction] 
 
