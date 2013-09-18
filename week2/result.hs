@@ -180,7 +180,8 @@ dist f1 f2 	       = Dsj [f1,f2]
 
 -- function to convert any form to cnf
 -- VVZ: incorrect, counterexample: cnf (Cnj [Cnj [p,q], q])
--- GROUP: does this mean that the nested conjunctions need to be flattened out? So the cnf results in Cnj [p,q,q] or Cnj [p,q]?? 
+
+-- GROUP: Does this mean that the nested conjunctions need to be flattened out? So the cnf results in Cnj [p,q,q] or Cnj [p,q]?? 
 -- Because the grammar of CNF does not - according to us - indicate this. Is it not correct that the result is the same as the form?
 
 --  Cnj [Cnj [p,q], q] ==> Cnj [p, q, q]
@@ -203,18 +204,38 @@ fromAnyFormToCnf f = cnf (nnf (arrowfree f))
 -- checkCnf2 (Neg (Prop x)) = True
 -- checkCnf2 (Dsj fs) = -- has
 
-checkEquivalenceOfResult :: Form -> Bool
-checkEquivalenceOfResult fs = equiv (fromAnyFormToCnf fs) fs
+checkCnfConvertionSampleForms = map checkCnf [form_Tautology, form1_Implication, form1_Equivalence, form_Contradiction] 
 
-checkCnf =
-	checkEquivalenceOfResult form1 &&
-	checkEquivalenceOfResult form2 &&
-	checkEquivalenceOfResult form3 &&
-	checkEquivalenceOfResult form_Contradiction &&
-	checkEquivalenceOfResult form_Tautology &&
-	checkEquivalenceOfResult form1_Implication &&
-	checkEquivalenceOfResult form2_Implication &&
-	checkEquivalenceOfResult form1_Equivalence &&
-	checkEquivalenceOfResult form2_Equivalence
+checkCnf :: Form -> Bool
+checkCnf f =
+	equiv f f'&&
+	checkConformityToCNF f'
+	where f' = fromAnyFormToCnf f
 
+
+-- we need to check whether nnf and arrowFree were applied correctly, 
+-- also whether functions are bound with conjunctions together, so disjunctions should be pushed to the inside functions 
+checkConformityToCNF :: Form -> Bool
+checkConformityToCNF f = nnfApplied f' &&
+			 arrowFreeApplied f'&&
+			 functionsBoundWithCnj f' 
+			 where f' = show f
+			
+				
+
+nnfApplied :: String -> Bool
+nnfApplied s | isInfixOf "-*" s = False
+			  | isInfixOf "-+" s = False
+			  | isInfixOf "-(" s = False
+			  | otherwise = True
+
+
+arrowFreeApplied :: String -> Bool
+arrowFreeApplied s | isInfixOf "==>" s = False
+			    | isInfixOf "<=>" s = False
+			    | otherwise = True
+
+-- Don't know yet how to check this
+functionsBoundWithCnj :: String -> Bool
+functionsBoundWithCnj s = True
 
