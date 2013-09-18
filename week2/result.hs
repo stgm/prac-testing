@@ -157,23 +157,38 @@ checkEquiv =
 
 -- precondition: input is arrow-free and in nnf
 -- VVZ: incorrect, missing lots of cases. the simplest counterexample is from the first from above: (Neg (Neg p))
+-- GROUP: according to the precondition the input must be arrow-free and in nnf, so no (Neg (Neg p)) can not occur anymore for the input and hence we don’t have to check it here anymore (same goes for De Morgan law which is already handled in nnf function)
+
 cnf:: Form -> Form 
 cnf (Prop x) = Prop x
 cnf (Cnj fs) = Cnj (map cnf fs)
-cnf (Dsj fs) = dist (map cnf fs)
 -- VVZ: treating of disjunction is incorrect: the Haskell implementation allows for three and more elements in a clause
+-- GROUP: Fixed
+cnf (Dsj [f1,f2]) = dist f1 f2
+cnf (Dsj (f:fs)) = dist f (cnf (Dsj fs))
 cnf f	     = f
 
 -- precondition: input is in cnf
 -- VVZ: incorrect, works correctly only on two-element lists, which is not reflected by the type (hence, the spec and the program don't agree)
 -- VVZ: also, a binary version could have been simplified (you don't need to use map if you know there are only two elements)
-dist:: [Form] -> Form
-dist [(Cnj fs), f2] = Cnj (map (\x -> dist [x,f2]) fs)
-dist [f1, (Cnj fs)] = Cnj (map (\x -> dist [f1,x]) fs)
-dist fs 	    = Dsj fs
+-- GROUP : Fixed
+
+dist:: Form -> Form -> Form
+dist (Cnj [f1,f2]) f3 = Cnj [dist f1 f3, dist f2 f3]
+dist f1 (Cnj [f2,f3]) = Cnj [dist f1 f2, dist f1 f3]
+dist f1 f2 	       = Dsj [f1,f2]
 
 -- function to convert any form to cnf
 -- VVZ: incorrect, counterexample: cnf (Cnj [Cnj [p,q], q])
+-- GROUP: does this mean that the nested conjunctions need to be flattened out? So the cnf results in Cnj [p,q,q] or Cnj [p,q]?? 
+-- Because the grammar of CNF does not - according to us - indicate this. Is it not correct that the result is the same as the form?
+
+--  Cnj [Cnj [p,q], q] ==> Cnj [p, q, q]
+-- (p /\ q) /\ q ==> p /\ q /\ q
+-- Cnj [Cnj [p,q], r] ==> Cnj [p, q, r]
+-- (p /\ q) /\ r ==> p /\ q /\ r
+
+
 fromAnyFormToCnf:: Form -> Form
 fromAnyFormToCnf f = cnf (nnf (arrowfree f))
 
@@ -184,20 +199,22 @@ fromAnyFormToCnf f = cnf (nnf (arrowfree f))
 -- VVZ: only tests if the transformation to CNF preserves the equivalence
 -- VVZ: never tests if the result actually conforms to the definition of CNF
 -- VVZ: (and it does not for many, try to run "cnf form1_Equivalence")
+-- checkCnf2 :: Form -> Form
+-- checkCnf2 (Neg (Prop x)) = True
+-- checkCnf2 (Dsj fs) = -- has
+
+checkEquivalenceOfResult :: Form -> Bool
+checkEquivalenceOfResult fs = equiv (fromAnyFormToCnf fs) fs
+
 checkCnf =
-	normEquiv form1 &&
-	normEquiv form2 &&
-	normEquiv form3 && 
-	normEquiv form_Contradiction && 
-	normEquiv form_Tautology && 
-	normEquiv form1_Implication && 
-	normEquiv form2_Implication && 
-	normEquiv form1_Equivalence && 
-	normEquiv form2_Equivalence
+	checkEquivalenceOfResult form1 &&
+	checkEquivalenceOfResult form2 &&
+	checkEquivalenceOfResult form3 &&
+	checkEquivalenceOfResult form_Contradiction &&
+	checkEquivalenceOfResult form_Tautology &&
+	checkEquivalenceOfResult form1_Implication &&
+	checkEquivalenceOfResult form2_Implication &&
+	checkEquivalenceOfResult form1_Equivalence &&
+	checkEquivalenceOfResult form2_Equivalence
 
 
-normEquiv :: Form -> Bool
-normEquiv fs = equiv (fromAnyFormToCnf fs) fs
-
-
---test
