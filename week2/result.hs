@@ -199,3 +199,5 @@ checkCnf =
 normEquiv :: Form -> Bool
 normEquiv fs = equiv (fromAnyFormToCnf fs) fs
 
+
+--test
