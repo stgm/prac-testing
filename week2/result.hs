@@ -167,6 +167,9 @@ cnf (Dsj [f1,f2]) = dist f1 f2
 -- VVZ: treating of disjunction is incorrect: the Haskell implementation allows for three and more elements in a clause
 -- GROUP: Fixed this by adding the following line:
 cnf (Dsj (f:fs))  = dist f (cnf (Dsj fs))
+-- VVZ: looks to me like it should be
+-- VVZ: cnf (Dsj (f:fs)) = dist (cnf f) (cnf (Dsj fs))
+
 cnf f	          = f
 
 -- precondition: input is in cnf
@@ -186,7 +189,9 @@ dist f1 f2 	      = Dsj [f1,f2]
 -- Is it not correct that the result is the same as the form for the counterexample you give here? This example form is already in CNF, isn't it?
 -- Or do you mean that the nested conjunctions need to be flattened out? So the cnf results in Cnj [p,q,q] or Cnj [p,q]?? 
 -- Because the grammar of CNF does not - according to us - indicate this. 
-
+-- VVZ: The grammar of CNF is slightly different than the data type definition in Haskell:
+-- VVZ: it needs to allow nested conjunctions since the conjunction there is binary
+-- VVZ: In the implementation, we go for the list-based conjunction/disjunction, which is easier to operate on a computer.
 fromAnyFormToCnf:: Form -> Form
 fromAnyFormToCnf f = cnf (nnf (arrowfree f))
 
@@ -216,7 +221,9 @@ checkConformityToCNF f = nnfApplied f' &&
 			 functionsBoundWithCnj f' 
 			 where f' = show f
 			
-				
+-- VVZ: this is a bit hacky: I advise to find another way than to work on pretty-printed representations
+-- VVZ: we can talk more about limitations of lexical analysis w.r.t. syntactic one at the next lab
+-- VVZ: also, do not confuse infix with prefix (also with affix, postfix and confix ;) )
 
 nnfApplied :: String -> Bool
 nnfApplied s | isInfixOf "-*" s = False
