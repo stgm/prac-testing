@@ -11,7 +11,7 @@ LaTeX Footer:       mmd-tufte-footer
 
 	import Techniques
 	import Week3
-	import Week2Sol
+	import Week2Solutions
 
 	import System.Random
 	import Control.Monad
@@ -25,16 +25,12 @@ numbers to generate. In order to be able to generate a usable infinite list of
 numbers, we have to do it lazily.
 
 	getIntList :: IO [Int]
-	getIntList = liftM (randomRs (0,15)) getStdGen
-
-We also provided a set of functions to demonstrate that `getIntList` indeed
-works lazily and can be used to generate a list of random numbers.
-
-	takeM :: Monad m => Int -> m [a] -> m [a]
-	takeM x = liftM (take x)
+	getIntList = do
+	    r <- newStdGen
+	    return (randomRs (0,15) r)
 
 	randomInts :: Int -> IO [Int]
-	randomInts x = takeM x getIntList
+	randomInts n = liftM (take n) getIntList
 
 ## `isPermutation`
 
