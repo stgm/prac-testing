@@ -17,9 +17,11 @@ triangle :: Integer -> Integer -> Integer -> Shape
 triangle x y z
     | any (==0) [x,y,z]                                        = NoTriangle
 -- VVZ: incorrect, counter-example: triangle 1 2 1000
+-- VVZ': still not fixed
 	| x == y && y == z                                         = Equilateral
 	| x^2 + y^2 == z^2 || x^2 + z^2 == y^2 || z^2 + y^2 == x^2 = Rectangular
 -- VVZ: correct, but slightly inefficient, you could've written another function that works with sorted triples
+-- VVZ': this one is okay, it was a warning/advice anyway
 	| x == y || y == z || z == x                               = Isosceles
 	| otherwise                                                = Other
 
@@ -181,6 +183,16 @@ cnf f	          = f
 -- VVZ: incorrect, works correctly only on two-element lists, which is not reflected by the type (hence, the spec and the program don't agree)
 -- VVZ: also, a binary version could have been simplified (you don't need to use map if you know there are only two elements)
 -- GROUP : Fixed by making dist function accept two Form parameters
+-- VVZ': no, it is absolutely not fixed.
+-- VVZ': Showing you the correct implementation of dist:
+-- VVZ': dist :: Form -> Form -> Form 
+-- VVZ': dist (Cnj []) _ = Cnj []
+-- VVZ': dist (Cnj [f1]) f2 = dist f1 f2
+-- VVZ': dist (Cnj (f1:fs)) f2 = Cnj [dist f1 f2, dist (Cnj fs) f2]
+-- VVZ': dist _ (Cnj []) = Cnj []
+-- VVZ': dist f1 (Cnj [f2]) = dist f1 f2
+-- VVZ': dist f1 (Cnj (f2:fs)) = Cnj [dist f1 f2, dist f1 (Cnj fs)]
+-- VVZ': dist f1 f2 = Dsj [f1,f2]
 
 dist:: Form -> Form -> Form
 dist (Cnj [f1,f2]) f3 = Cnj [dist f1 f3, dist f2 f3]
@@ -194,6 +206,11 @@ dist f1 f2 	      = Dsj [f1,f2]
 -- Is it not correct that the result is the same as the form for the counterexample you give here? This example form is already in CNF, isn't it?
 -- Or do you mean that the nested conjunctions need to be flattened out? So the cnf results in Cnj [p,q,q] or Cnj [p,q]?? 
 -- Because the grammar of CNF does not - according to us - indicate this. 
+-- VVZ': (1) the grammar starts as C = D | D and C. Even if you assign Haskell semantics directly to this grammar, it does mean that the leftmost operand is a disjunction. In your implementation you do NOT check that.
+-- VVZ': (2) during the workshop, we had a formal definition of CNF as "conjunction of disjunctions", and did an exercise about defining disjunctive normal form similarly. 
+-- VVZ': (3) the Haskell type definition has no need for nested conjunctions. Think about defining any kind of algorithm that operates on nested con/disjunctions, and how much trouble one would need to go through to define it. Normalisations exist to make life of programmers easier, so what would be the point of normalising everything nicely yet allowing something that nullifies the effort?
+-- VVZ': (4) in general it is a good idea to discuss these things directly (Monday lab, Monday lecture, Monday workshop, Tuesday lab, FAQ, email) instead of trying to argue in the comments, by pushing misinterpretation into next weeks.
+
 -- VVZ: The grammar of CNF is slightly different than the data type definition in Haskell:
 -- VVZ: it needs to allow nested conjunctions since the conjunction there is binary
 -- VVZ: In the implementation, we go for the list-based conjunction/disjunction, which is easier to operate on a computer.
@@ -208,6 +225,7 @@ fromAnyFormToCnf f = cnf (nnf (arrowfree f))
 -- VVZ: never tests if the result actually conforms to the definition of CNF
 -- VVZ: (and it does not for many, try to run "cnf form1_Equivalence")
 -- GROUP: Almost fixed.. functionsBoundWithCnj function needs to be still implemented to make the check complete.
+-- VVZ': and where is it?
 
 checkCnfConvertionSampleForms = map checkCnf [form_Tautology, form1_Implication, form1_Equivalence, form_Contradiction] 
 
