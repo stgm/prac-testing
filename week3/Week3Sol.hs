@@ -32,9 +32,19 @@ randomTestPerm2 = do
     x <- randomInts 3
     return ((not (isPermutation x (0:x))) && (not (isPermutation x (x++[0]))))
 
--- VVZ: Basically your solution relies on random formulae generation (which was given in Techniques.pdf) and a checkCnf function of last week (which is still in ruins several weeks after I have explicitly warned you about it)
--- VVZ: In other words, you apply someone else's technique to test incorrect implementation with incorrect test function.
--- VVZ: This is not anywhere near a correct solution.
+{-- 
+    VVZ:
+        Basically your solution relies on random formulae generation (which was
+        given in Techniques.pdf) and a checkCnf function of last week (which is
+        still in ruins several weeks after I have explicitly warned you about
+        it)
+
+        In other words, you apply someone else's technique to test incorrect
+        implementation with incorrect test function.
+
+        This is not anywhere near a correct solution.
+-}
+
 checkCNFs :: IO ()
 checkCNFs = testForms 50 checkCnf
 
