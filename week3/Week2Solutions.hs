@@ -222,8 +222,7 @@ checkEquiv =
 cnf:: Form -> Form 
 cnf (Prop x) = Prop x
 cnf (Cnj fs) = Cnj (map cnf fs)
-cnf (Dsj [f1,f2]) = dist f1 f2
-cnf (Dsj (f:fs))  = dist f (cnf (Dsj fs))
+cnf (Dsj (f:fs))  = dist (cnf f) (cnf (Dsj fs))
 cnf f             = f
 
 {-- 
