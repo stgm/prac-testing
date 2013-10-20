@@ -33,6 +33,13 @@ mergeSrtA = assert1 lengthProp
 			$ assert1 sublistProp1 
 			$ assert1 permutation 
 			$ post1 sorted mergeSrt
+-- VVZ: you have four assertions (one of which only concerns a postcondition).
+-- VVZ: are some of these assertions weaker than some others?
+-- VVZ: can we simplify the function mergeSrtA by skipping some of them?
+-- VVZ: (the answer is "YES, WE CAN")
+-- VVZ: lengthProp and sublistProp1 are both weaker than permutation, and that one is equivalent to the last condition.
+-- VVZ: if you didn't want to write it in a postcondition-style, it could have also been
+-- VVZ: assert1 (\ _ ys -> sorted ys) mergeSrt
 
 --
 -- Question 2 | Time spent: 2 hours
@@ -48,11 +55,13 @@ mergeSrt' [x] = [x]
 mergeSrt' xs | (length xs) < 2 = xs
 			 | otherwise = let (b,c) = (Week5Sol_Q1_Q2.split xs) 
 							in (merge (mergeSrt' b) (mergeSrt' c))
+-- VVZ: not a very lazy solution, the first two lines are covered by the third line anyway
 
 mergeSrtA' ::  Ord a => [a] -> [a]
 mergeSrtA' = 	assert1 lengthProp 
 				$ assert1 sublistProp1  
 				$ post1 (\ ys -> (sorted ys)) mergeSrt'
+-- VVZ: what is the difference between (\ ys -> (sorted ys)) and just sorted? Be lazier!
 
 -- some random testing
 -- works with the assertions

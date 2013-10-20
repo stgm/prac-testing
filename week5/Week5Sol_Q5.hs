@@ -58,3 +58,4 @@ main = do r <- randomSudoku'
           s <- genProblem' r
           showNode s
           solveShowNs' [s]
+-- VVZ: very good!
